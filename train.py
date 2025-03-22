@@ -27,8 +27,8 @@ def get_parser():
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
     parser.add_argument('--weight_decay', default=1e-4, type=float)
     parser.add_argument('--model_name', default='NN', type=str)
-    parser.add_argument('--past_data', default=64, type=int)
-    parser.add_argument('--future_data', default=64, type=int)
+    parser.add_argument('--past_data', default=32, type=int)
+    parser.add_argument('--future_data', default=32, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
     parser.add_argument('--wandb', default=False, type=bool)
@@ -128,8 +128,11 @@ class NN_Model(nn.Module):
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2),
             nn.Conv1d(32, 64, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
-            nn.ReLU()
-       #    ,nn.MaxPool1d(kernel_size=2, stride=2)
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2, stride=2),
+            nn.Conv1d(64, 128, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2, stride=2)
         )
 
         self.constants = nn.Sequential(
@@ -140,14 +143,14 @@ class NN_Model(nn.Module):
         )
 
       #  self.global_pool = nn.AdaptiveAvgPool1d(1)  # Global average pooling
-      #  self.mixer = nn.Linear(48,1)
+      #  self.mixer = nn.Linear(24,1)
         self.mixer = nn.Sequential(
-            nn.Linear(96, 48),
+            nn.Linear(12, 6),
             nn.ReLU(),
-            nn.Linear(48, 1),
+            nn.Linear(6, 1),
             nn.ReLU()
         )
-        self.fc = nn.Linear(128, 1)
+        self.fc = nn.Linear(128+64, 1)
 
     def forward(self, time, speed, HR, general):
         general = self.constants(general)
