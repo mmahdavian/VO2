@@ -8,16 +8,16 @@ class NN_Model(nn.Module):
         super(NN_Model, self).__init__()
         self.kernel_len = kernel_len
         self.temporal_conv = nn.Sequential(
-            nn.Conv1d(1, 64, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
+            nn.Conv1d(1, 8, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2),
-            nn.Conv1d(64, 64, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
+            nn.Conv1d(8, 16, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2),
-            nn.Conv1d(64, 64, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
+            nn.Conv1d(16, 32, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2),
-            nn.Conv1d(64, 64, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
+            nn.Conv1d(32, 64, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
             nn.ReLU(),
         #    nn.MaxPool1d(kernel_size=2, stride=2)
         )
@@ -27,8 +27,8 @@ class NN_Model(nn.Module):
             nn.ReLU(),
             nn.Linear(32, 64),
             nn.ReLU(),
-            nn.Linear(64, 128),
-            nn.ReLU()
+          #  nn.Linear(64, 128),
+          #  nn.ReLU()
         )
 
       #  self.global_pool = nn.AdaptiveAvgPool1d(1)  # Global average pooling
@@ -40,8 +40,8 @@ class NN_Model(nn.Module):
             nn.ReLU()
         )
         self.fc = nn.Sequential(
-            nn.Linear(128+128, 128),
-            nn.ReLU(),
+          #  nn.Linear(128+128, 128),
+          #  nn.ReLU(),
             nn.Linear(128, 64),
             nn.ReLU(),
             nn.Linear(64, 1)

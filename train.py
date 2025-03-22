@@ -15,6 +15,7 @@ import wandb
 
 from data_loader import Feeder
 from models.tcn_model import TCN
+from models.nn_model import NN_Model
 import argparse
 from collections import OrderedDict
 
@@ -33,7 +34,7 @@ def get_parser():
     parser.add_argument('--future_data', default=32, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
-    parser.add_argument('--model_name', default='NN_all64', type=str)
+    parser.add_argument('--model_name', default='NN2', type=str)
     parser.add_argument('--wandb', default=False, type=bool)
     parser.add_argument('--wandb_name', default='Zepp', type=str)
     parser.add_argument('--kernel_len', default=5, type=int)
@@ -67,8 +68,8 @@ class Trainer:
                 ])
         
     def train(self):
-#        model = NN_Model(self.args.kernel_len).to(self.device)
-        model = TCN(input_channels=1, const_dim=4, num_layers=4, kernel_size=self.args.kernel_len).to(self.device)
+        model = NN_Model(self.args.kernel_len).to(self.device)
+#        model = TCN(input_channels=1, const_dim=4, num_layers=4, kernel_size=self.args.kernel_len).to(self.device)
 
 
         criterion = nn.MSELoss()
