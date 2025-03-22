@@ -8,16 +8,16 @@ class NN_Model(nn.Module):
         super(NN_Model, self).__init__()
         self.kernel_len = kernel_len
         self.temporal_conv = nn.Sequential(
-            nn.Conv1d(1, 16, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
+            nn.Conv1d(1, 64, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2),
-            nn.Conv1d(16, 32, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
+            nn.Conv1d(64, 64, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2),
-            nn.Conv1d(32, 64, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
+            nn.Conv1d(64, 64, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2),
-            n.Conv1d(64, 128, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
+            nn.Conv1d(64, 64, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
             nn.ReLU(),
         #    nn.MaxPool1d(kernel_size=2, stride=2)
         )
