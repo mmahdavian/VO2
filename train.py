@@ -27,8 +27,8 @@ def get_parser():
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
     parser.add_argument('--weight_decay', default=1e-4, type=float)
     parser.add_argument('--model_name', default='NN', type=str)
-    parser.add_argument('--past_data', default=16, type=int)
-    parser.add_argument('--future_data', default=16, type=int)
+    parser.add_argument('--past_data', default=64, type=int)
+    parser.add_argument('--future_data', default=64, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
     parser.add_argument('--wandb', default=False, type=bool)
@@ -116,9 +116,6 @@ class Trainer:
 
         return {"mae": mae, "mse": mse, "pearson": pearson, "r2": r2}
 
-
-
-
 class NN_Model(nn.Module):
     def __init__(self,kernel_len):
         super(NN_Model, self).__init__()
@@ -143,7 +140,13 @@ class NN_Model(nn.Module):
         )
 
       #  self.global_pool = nn.AdaptiveAvgPool1d(1)  # Global average pooling
-        self.mixer = nn.Linear(24,1)
+      #  self.mixer = nn.Linear(48,1)
+        self.mixer = nn.Sequential(
+            nn.Linear(96, 48),
+            nn.ReLU(),
+            nn.Linear(48, 1),
+            nn.ReLU()
+        )
         self.fc = nn.Linear(128, 1)
 
     def forward(self, time, speed, HR, general):
