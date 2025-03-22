@@ -11,10 +11,11 @@ import torch.nn as nn
 import torch.optim as optim
 
 import time
-#import wandb
+import wandb
 
 from data_loader import Feeder
 import argparse
+from collections import OrderedDict
 
 
 def get_parser():
@@ -25,14 +26,14 @@ def get_parser():
     parser.add_argument('--batch_size', type=int, default=32, help='batch size')
     parser.add_argument('--epochs', type=int, default=100, help='number of epochs')
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
-    parser.add_argument('--weight_decay', default=1e-4, type=float)
-    parser.add_argument('--model_name', default='NN', type=str)
+    parser.add_argument('--weight_decay', default=1e-4, type=float) # 1e-4
     parser.add_argument('--past_data', default=32, type=int)
     parser.add_argument('--future_data', default=32, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
-    parser.add_argument('--wandb', default=False, type=bool)
-    parser.add_argument('--wandb_name', default='transfuser', type=str)
+    parser.add_argument('--model_name', default='NN1', type=str)
+    parser.add_argument('--wandb', default=True, type=bool)
+    parser.add_argument('--wandb_name', default='Zepp', type=str)
     parser.add_argument('--kernel_len', default=3, type=int)
 
     return parser.parse_args()
@@ -43,7 +44,8 @@ class Trainer:
         self.args = args
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.load_data()
-        self.train()
+        self.load_logger()
+#        self.train()
 
     def load_data(self):
         ## We have both train and test ratio as a general format. They might not sumup to 1
@@ -52,6 +54,18 @@ class Trainer:
         self.train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=self.args.batch_size, shuffle=True, num_workers=4)
         self.test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=self.args.batch_size, shuffle=False, num_workers=4)
 
+    def load_logger(self):
+        self.log = OrderedDict([
+                        ('epoch', []),
+                        ('train_loss_total', []),
+                      #  ('train_accuracy', []),
+                        ('lrate', []),
+                      #  ('elapsed_time_train', []),
+                        ('val_loss_total', []),
+                      #  ('test_accuracy', []),
+                     #   ('elapsed_time_val', []),
+                ])
+        
     def train(self):
         model = NN_Model(self.args.kernel_len).to(self.device)
 
@@ -82,6 +96,10 @@ class Trainer:
 
             avg_loss = epoch_loss / len(self.train_loader)
             print(f"Epoch [{epoch+1}/{self.args.epochs}], Loss: {avg_loss:.4f}")
+
+            self.log['train_loss_total'].append(avg_loss)
+            self.log['epoch'].append(epoch)
+            self.log['lrate'].append(optimizer.param_groups[0]['lr'])
 
             # Evaluate on train and test sets
       #      train_metrics = self.evaluate(model, self.train_loader)
@@ -149,8 +167,6 @@ class NN_Model(nn.Module):
             nn.ReLU(),
             nn.Linear(12, 1),
             nn.ReLU(),
-#            nn.Linear(6,1),
-#            nn.ReLU()
         )
         self.fc = nn.Linear(128+64, 1)
 
@@ -173,8 +189,8 @@ class NN_Model(nn.Module):
 def main():
     args = get_parser()
     trainer = Trainer(args)
- #   if args.wandb:
- #       wandb.init(project=args.wandb_name,  entity="transfuser", name = args.model_name)    
+    if args.wandb:
+        wandb.init(project=args.wandb_name,  entity="transfuser", name = args.model_name)    
     trainer.train()
 
 if __name__ == '__main__':
