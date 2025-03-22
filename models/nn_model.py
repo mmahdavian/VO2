@@ -17,7 +17,7 @@ class NN_Model(nn.Module):
             nn.Conv1d(32, 64, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2),
-            nn.Conv1d(64, 128, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
+            n.Conv1d(64, 128, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
             nn.ReLU(),
         #    nn.MaxPool1d(kernel_size=2, stride=2)
         )
