@@ -27,6 +27,7 @@ def get_parser():
     parser.add_argument('--batch_size', type=int, default=32, help='batch size')
     parser.add_argument('--epochs', type=int, default=100, help='number of epochs')
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
+    parser.add_argument('--lr_update_interval', type=int, default=1, help='learning rate update interval')
     parser.add_argument('--weight_decay', default=1e-4, type=float) # 1e-4
     parser.add_argument('--past_data', default=32, type=int)
     parser.add_argument('--future_data', default=32, type=int)
@@ -68,8 +69,10 @@ class Trainer:
     def train(self):
         model = NN_Model(self.args.kernel_len).to(self.device)
 
+
         criterion = nn.MSELoss()
         optimizer = optim.AdamW(model.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
+        self.scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.args.epochs, eta_min=self.args.lr/20)
 
         # Training loop
         model.train()
@@ -96,9 +99,14 @@ class Trainer:
             avg_loss = epoch_loss / len(self.train_loader)
             print(f"Epoch [{epoch+1}/{self.args.epochs}], Loss: {avg_loss:.4f}")
 
+            if epoch % self.args.lr_update_interval == 0:
+                self.scheduler.step()
+
             self.log['train_loss_total'].append(avg_loss)
             self.log['epoch'].append(epoch)
             self.log['lrate'].append(optimizer.param_groups[0]['lr'])
+
+
 
             # Evaluate on train and test sets
       #      train_metrics = self.evaluate(model, self.train_loader)
@@ -108,7 +116,6 @@ class Trainer:
      #               f"Pearson: {train_metrics['pearson']:.4f}, R2: {train_metrics['r2']:.4f}")
      #       print(f"Test Metrics: MAE: {test_metrics['mae']:.4f}, MSE: {test_metrics['mse']:.4f}, "
      #               f"Pearson: {test_metrics['pearson']:.4f}, R2: {test_metrics['r2']:.4f}")
-
 
             if self.args.wandb:
                     dic = {x: v[-1] for x,v in self.log.items() if v }
