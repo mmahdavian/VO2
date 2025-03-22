@@ -132,7 +132,7 @@ class NN_Model(nn.Module):
             nn.MaxPool1d(kernel_size=2, stride=2),
             nn.Conv1d(64, 128, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
             nn.ReLU(),
-            nn.MaxPool1d(kernel_size=2, stride=2)
+            #nn.MaxPool1d(kernel_size=2, stride=2)
         )
 
         self.constants = nn.Sequential(
@@ -143,12 +143,14 @@ class NN_Model(nn.Module):
         )
 
       #  self.global_pool = nn.AdaptiveAvgPool1d(1)  # Global average pooling
-      #  self.mixer = nn.Linear(48,1)
+      #  self.mixer = nn.Linear(24,1)
         self.mixer = nn.Sequential(
             nn.Linear(24, 12),
             nn.ReLU(),
             nn.Linear(12, 1),
-            nn.ReLU()
+            nn.ReLU(),
+#            nn.Linear(6,1),
+#            nn.ReLU()
         )
         self.fc = nn.Linear(128+64, 1)
 
