@@ -88,8 +88,6 @@ class Trainer:
         self.model = NN_Model(self.args.kernel_len).to(self.device)
         self.initialize_weights(self.model)
 #        model = TCN(input_channels=1, const_dim=4, num_layers=4, kernel_size=self.args.kernel_len).to(self.device)
-
-
         criterion = nn.MSELoss()
         optimizer = optim.AdamW(self.model.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
         self.scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.args.epochs, eta_min=self.args.lr/20)
@@ -160,7 +158,7 @@ class Trainer:
         mse = np.mean((all_outputs - all_targets) ** 2)
         pearson = np.corrcoef(all_outputs.flatten(), all_targets.flatten())[0, 1]
         r2 = r2_score(all_targets, all_outputs)
-
+        
         return {"mae": mae, "mse": mse, "pearson": pearson, "r2": r2}
 
 def main():
