@@ -66,18 +66,36 @@ class Trainer:
                       #  ('test_accuracy', []),
                      #   ('elapsed_time_val', []),
                 ])
-        
+
+    def initialize_weights(self,model):
+        for layer in model.modules():
+            if isinstance(layer, (nn.Conv1d, nn.Conv2d, nn.Conv3d)):
+                # Kaiming He Initialization for Conv layers
+                nn.init.kaiming_normal_(layer.weight, mode='fan_in', nonlinearity='relu')
+                if layer.bias is not None:
+                    nn.init.zeros_(layer.bias)
+            elif isinstance(layer, nn.Linear):
+                # Kaiming He Initialization for Linear layers with ReLU
+                nn.init.kaiming_normal_(layer.weight, mode='fan_in', nonlinearity='relu')
+                if layer.bias is not None:
+                    nn.init.zeros_(layer.bias)
+            elif isinstance(layer, (nn.BatchNorm1d, nn.BatchNorm2d, nn.BatchNorm3d)):
+                # Initialize BatchNorm to be identity transformation
+                nn.init.ones_(layer.weight)
+                nn.init.zeros_(layer.bias)
+                    
     def train(self):
-        model = NN_Model(self.args.kernel_len).to(self.device)
+        self.model = NN_Model(self.args.kernel_len).to(self.device)
+        self.initialize_weights(self.model)
 #        model = TCN(input_channels=1, const_dim=4, num_layers=4, kernel_size=self.args.kernel_len).to(self.device)
 
 
         criterion = nn.MSELoss()
-        optimizer = optim.AdamW(model.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
+        optimizer = optim.AdamW(self.model.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
         self.scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.args.epochs, eta_min=self.args.lr/20)
 
         # Training loop
-        model.train()
+        self.model.train()
         for epoch in range(self.args.epochs):
             epoch_loss = 0.0
             for (time,speed,HR,input_general,targets) in tqdm(self.train_loader, desc=f"Epoch {epoch+1}/{self.args.epochs}"):
@@ -88,7 +106,7 @@ class Trainer:
                 targets = targets.float().to(self.device)
 
                 # Forward pass
-                outputs = model(time,speed,HR,input_general)
+                outputs = self.model(time,speed,HR,input_general)
                 loss = criterion(outputs, targets)
 
                 # Backward pass and optimization
@@ -107,8 +125,6 @@ class Trainer:
             self.log['train_loss_total'].append(avg_loss)
             self.log['epoch'].append(epoch)
             self.log['lrate'].append(optimizer.param_groups[0]['lr'])
-
-
 
             # Evaluate on train and test sets
       #      train_metrics = self.evaluate(model, self.train_loader)
