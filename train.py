@@ -59,10 +59,19 @@ class Trainer:
         self.log = OrderedDict([
                         ('epoch', []),
                         ('train_loss_total', []),
-                      #  ('train_accuracy', []),
+                        ('MAE_train', []),
+                        ('MSE_train', []),
+                        ('RMSE_train', []),
+                        ('R2_train', []),
+                        ('Pearson_train',[])
                         ('lrate', []),
                       #  ('elapsed_time_train', []),
-                        ('val_loss_total', []),
+                      #  ('test_loss_total', []),
+                        ('MAE_test', []),
+                        ('MSE_test', []),
+                        ('RMSE_test', []),
+                        ('R2_test', []),
+                        ('Pearson_test',[])
                       #  ('test_accuracy', []),
                      #   ('elapsed_time_val', []),
                 ])
@@ -132,6 +141,17 @@ class Trainer:
 #                    f"Pearson: {train_metrics['pearson']:.4f}, R2: {train_metrics['r2']:.4f}")
             print(f"Test Metrics: MAE: {test_metrics['mae']:.4f}, MSE: {test_metrics['mse']:.4f}, "
                     f"Pearson: {test_metrics['pearson']:.4f}, R2: {test_metrics['r2']:.4f}")
+
+            self.log['MAE_train'].append(train_metrics['mae'])
+            self.log['MSE_train'].append(train_metrics['mse'])
+            self.log['R2_train'].append(train_metrics['r2'])
+            self.log['Pearson_train'].append(train_metrics['pearson'])
+
+            self.log['MAE_test'].append(test_metrics['mae'])
+            self.log['MSE_test'].append(test_metrics['mse'])
+            self.log['R2_test'].append(test_metrics['r2'])
+            self.log['Pearson_test'].append(test_metrics['pearson'])
+
 
             if self.args.wandb:
                     dic = {x: v[-1] for x,v in self.log.items() if v }
