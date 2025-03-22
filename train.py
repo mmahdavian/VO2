@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-import time
+#import time
 import wandb
 
 from data_loader import Feeder
@@ -34,8 +34,8 @@ def get_parser():
     parser.add_argument('--future_data', default=32, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
-    parser.add_argument('--model_name', default='NN2', type=str)
-    parser.add_argument('--wandb', default=False, type=bool)
+    parser.add_argument('--model_name', default='NN1', type=str)
+    parser.add_argument('--wandb', default=True, type=bool)
     parser.add_argument('--wandb_name', default='Zepp', type=str)
     parser.add_argument('--kernel_len', default=5, type=int)
     return parser.parse_args()
@@ -96,15 +96,15 @@ class Trainer:
         self.model.train()
         for epoch in range(self.args.epochs):
             epoch_loss = 0.0
-            for (time,speed,HR,input_general,targets) in tqdm(self.train_loader, desc=f"Epoch {epoch+1}/{self.args.epochs}"):
-                time = time.float().unsqueeze(1).to(self.device)
+            for (times,speed,HR,input_general,targets) in tqdm(self.train_loader, desc=f"Epoch {epoch+1}/{self.args.epochs}"):
+                times = times.float().unsqueeze(1).to(self.device)
                 speed = speed.float().unsqueeze(1).to(self.device)
                 HR = HR.float().unsqueeze(1).to(self.device)
                 input_general = input_general.float().to(self.device)
                 targets = targets.float().to(self.device)
 
                 # Forward pass
-                outputs = self.model(time,speed,HR,input_general)
+                outputs = self.model(times,speed,HR,input_general)
                 loss = criterion(outputs, targets)
 
                 # Backward pass and optimization
@@ -125,29 +125,35 @@ class Trainer:
             self.log['lrate'].append(optimizer.param_groups[0]['lr'])
 
             # Evaluate on train and test sets
-      #      train_metrics = self.evaluate(model, self.train_loader)
-      #      test_metrics = self.evaluate(model, self.test_loader)
+            train_metrics = self.evaluate(self.train_loader)
+            test_metrics = self.evaluate(self.test_loader)
 
-     #       print(f"Train Metrics: MAE: {train_metrics['mae']:.4f}, MSE: {train_metrics['mse']:.4f}, "
-     #               f"Pearson: {train_metrics['pearson']:.4f}, R2: {train_metrics['r2']:.4f}")
-     #       print(f"Test Metrics: MAE: {test_metrics['mae']:.4f}, MSE: {test_metrics['mse']:.4f}, "
-     #               f"Pearson: {test_metrics['pearson']:.4f}, R2: {test_metrics['r2']:.4f}")
+            print(f"Train Metrics: MAE: {train_metrics['mae']:.4f}, MSE: {train_metrics['mse']:.4f}, "
+                    f"Pearson: {train_metrics['pearson']:.4f}, R2: {train_metrics['r2']:.4f}")
+            print(f"Test Metrics: MAE: {test_metrics['mae']:.4f}, MSE: {test_metrics['mse']:.4f}, "
+                    f"Pearson: {test_metrics['pearson']:.4f}, R2: {test_metrics['r2']:.4f}")
 
             if self.args.wandb:
                     dic = {x: v[-1] for x,v in self.log.items() if v }
                     wandb.log(dic)
 
-    def evaluate(self, model, data_loader):
-        model.eval()
+    def evaluate(self, data_loader):
+        self.model.eval()
         all_targets = []
         all_outputs = []
 
         with torch.no_grad():
-            for batch in tqdm(data_loader):
-                inputs, targets = batch
-                inputs, targets = inputs.to(self.device), targets.to(self.device)
+            for times,speed,HR,input_general,targets in tqdm(data_loader):
 
-                outputs = model(inputs)
+                times = times.float().unsqueeze(1).to(self.device)
+                speed = speed.float().unsqueeze(1).to(self.device)
+                HR = HR.float().unsqueeze(1).to(self.device)
+                input_general = input_general.float().to(self.device)
+                targets = targets.float().to(self.device)
+
+                # Forward pass
+                outputs = self.model(times,speed,HR,input_general)
+
                 all_targets.append(targets.cpu().numpy())
                 all_outputs.append(outputs.cpu().numpy())
 
@@ -158,7 +164,7 @@ class Trainer:
         mse = np.mean((all_outputs - all_targets) ** 2)
         pearson = np.corrcoef(all_outputs.flatten(), all_targets.flatten())[0, 1]
         r2 = r2_score(all_targets, all_outputs)
-        
+
         return {"mae": mae, "mse": mse, "pearson": pearson, "r2": r2}
 
 def main():
