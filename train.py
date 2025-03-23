@@ -63,7 +63,7 @@ class Trainer:
                         ('MSE_train', []),
                         ('RMSE_train', []),
                         ('R2_train', []),
-                        ('Pearson_train',[])
+                        ('Pearson_train',[]),
                         ('lrate', []),
                       #  ('elapsed_time_train', []),
                       #  ('test_loss_total', []),
@@ -122,6 +122,9 @@ class Trainer:
                 optimizer.step()
 
                 epoch_loss += loss.item()
+            
+            if epoch>20:
+                print(outputs,targets)
 
             avg_loss = epoch_loss / len(self.train_loader)
             print(f"Epoch [{epoch+1}/{self.args.epochs}], Loss: {avg_loss:.4f}")
@@ -134,23 +137,23 @@ class Trainer:
             self.log['lrate'].append(optimizer.param_groups[0]['lr'])
 
             # Evaluate on train and test sets
-            train_metrics = self.evaluate(self.train_loader)
-            test_metrics = self.evaluate(self.test_loader)
+    #        train_metrics = self.evaluate(self.train_loader)
+     #       test_metrics = self.evaluate(self.test_loader)
 
-            print(f"Train Metrics: MAE: {train_metrics['mae']:.4f}, MSE: {train_metrics['mse']:.4f}, "
-                    f"Pearson: {train_metrics['pearson']:.4f}, R2: {train_metrics['r2']:.4f}")
-            print(f"Test Metrics: MAE: {test_metrics['mae']:.4f}, MSE: {test_metrics['mse']:.4f}, "
-                    f"Pearson: {test_metrics['pearson']:.4f}, R2: {test_metrics['r2']:.4f}")
+    #        print(f"Train Metrics: MAE: {train_metrics['mae']:.4f}, MSE: {train_metrics['mse']:.4f}, "
+    #                f"Pearson: {train_metrics['pearson']:.4f}, R2: {train_metrics['r2']:.4f}")
+    #        print(f"Test Metrics: MAE: {test_metrics['mae']:.4f}, MSE: {test_metrics['mse']:.4f}, "
+    #                f"Pearson: {test_metrics['pearson']:.4f}, R2: {test_metrics['r2']:.4f}")
 
-            self.log['MAE_train'].append(train_metrics['mae'])
-            self.log['MSE_train'].append(train_metrics['mse'])
-            self.log['R2_train'].append(train_metrics['r2'])
-            self.log['Pearson_train'].append(train_metrics['pearson'])
+            # self.log['MAE_train'].append(train_metrics['mae'])
+            # self.log['MSE_train'].append(train_metrics['mse'])
+            # self.log['R2_train'].append(train_metrics['r2'])
+            # self.log['Pearson_train'].append(train_metrics['pearson'])
 
-            self.log['MAE_test'].append(test_metrics['mae'])
-            self.log['MSE_test'].append(test_metrics['mse'])
-            self.log['R2_test'].append(test_metrics['r2'])
-            self.log['Pearson_test'].append(test_metrics['pearson'])
+            # self.log['MAE_test'].append(test_metrics['mae'])
+            # self.log['MSE_test'].append(test_metrics['mse'])
+            # self.log['R2_test'].append(test_metrics['r2'])
+            # self.log['Pearson_test'].append(test_metrics['pearson'])
 
 
             if self.args.wandb:
