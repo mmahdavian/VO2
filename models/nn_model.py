@@ -14,13 +14,16 @@ class NN_Model(nn.Module):
         self.conv2 = nn.Conv1d(32, 64, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2)
         self.relu2 = nn.ReLU()
         self.pool2 = nn.MaxPool1d(kernel_size=2, stride=2)
+        self.proj2 = nn.Conv1d(32, 64, kernel_size=1, stride=1, padding=0)
 
         self.conv3 = nn.Conv1d(64, 128, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2)
         self.relu3 = nn.ReLU()
         self.pool3 = nn.MaxPool1d(kernel_size=2, stride=2)
+        self.proj3 = nn.Conv1d(64, 128, kernel_size=1, stride=1, padding=0)
 
         self.conv4 = nn.Conv1d(128, 256, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2)
         self.relu4 = nn.ReLU()
+        self.proj4 = nn.Conv1d(128, 256, kernel_size=1, stride=1, padding=0)
 
         self.constants = nn.Sequential(
             nn.Linear(4, 32),
@@ -51,26 +54,26 @@ class NN_Model(nn.Module):
     def forward(self, time, speed, HR, general):
         general = self.constants(general)
         ## time
-        x_time = self.conv1(time)
-        x_time = self.relu1(x_time)
-        x_time = self.pool1(x_time)
-
-        x_time = self.conv2(x_time)
-        x_time = self.relu2(x_time)
-        x_time = self.pool2(x_time)
-        
-        x_time = self.conv3(x_time)
-        x_time = self.relu3(x_time)
-        x_time = self.pool3(x_time)
-        
-        x_time = self.conv4(x_time)
-        x_time = self.relu4(x_time)
+        x_time = self.pool1(self.relu1(self.conv1(time)+time))
+        x_time = self.pool2(self.relu2(self.conv2(x_time)+self.proj2(x_time)))
+        x_time = self.pool3(self.relu3(self.conv3(x_time)+self.proj3(x_time)))
+        x_time = self.relu4(self.conv4(x_time)+self.proj4(x_time))
         
         ## speed
+        x_speed = self.pool1(self.relu1(self.conv1(speed)+speed))
+        x_speed = self.pool2(self.relu2(self.conv2(x_speed)+self.proj2(x_speed)))
+        x_speed = self.pool3(self.relu3(self.conv3(x_speed)+self.proj3(x_speed)))
+        x_speed = self.relu4(self.conv4(x_speed)+self.proj4(x_speed))
+
+        ## HR
+        x_HR = self.pool1(self.relu1(self.conv1(HR)+HR))
+        x_HR = self.pool2(self.relu2(self.conv2(x_HR)+self.proj2(x_HR)))
+        x_HR = self.pool3(self.relu3(self.conv3(x_HR)+self.proj3(x_HR)))
+        x_HR = self.relu4(self.conv4(x_HR)+self.proj4(x_HR))
 
         #x_time = self.temporal_conv(time)
-        x_speed = self.temporal_conv(speed)
-        x_HR = self.temporal_conv(HR)
+        #x_speed = self.temporal_conv(speed)
+        #x_HR = self.temporal_conv(HR)
         x = torch.cat((x_time,x_speed,x_HR), dim=2)
 
      #   x = torch.mean(x, dim=-1, keepdim=True)  # Global average pooling
