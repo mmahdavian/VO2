@@ -4,24 +4,25 @@ import torch.nn as nn
 
 
 class NN_Model(nn.Module):
-    def __init__(self,kernel_len):
+    def __init__(self,kernel_len,dilation):
         super(NN_Model, self).__init__()
         self.kernel_len = kernel_len
-        self.conv1 = nn.Conv1d(1, 32, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2)
+        self.dilation = dilation
+        self.conv1 = nn.Conv1d(1, 32, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2 * self.dilation, dilation=self.dilation)
         self.relu1 = nn.ReLU()
         self.pool1 = nn.MaxPool1d(kernel_size=2, stride=2)
 
-        self.conv2 = nn.Conv1d(32, 64, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2)
+        self.conv2 = nn.Conv1d(32, 64, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2 * self.dilation, dilation=self.dilation)
         self.relu2 = nn.ReLU()
         self.pool2 = nn.MaxPool1d(kernel_size=2, stride=2)
         self.proj2 = nn.Conv1d(32, 64, kernel_size=1, stride=1, padding=0)
 
-        self.conv3 = nn.Conv1d(64, 128, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2)
+        self.conv3 = nn.Conv1d(64, 128, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2 * self.dilation, dilation=self.dilation)
         self.relu3 = nn.ReLU()
         self.pool3 = nn.MaxPool1d(kernel_size=2, stride=2)
         self.proj3 = nn.Conv1d(64, 128, kernel_size=1, stride=1, padding=0)
 
-        self.conv4 = nn.Conv1d(128, 256, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2)
+        self.conv4 = nn.Conv1d(128, 256, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2 * self.dilation, dilation=self.dilation)
         self.relu4 = nn.ReLU()
         self.proj4 = nn.Conv1d(128, 256, kernel_size=1, stride=1, padding=0)
 
