@@ -29,19 +29,36 @@ class Feeder:
         df.dropna(subset=['VO2'], inplace=True)
         df.drop(['VCO2','RR','VE','ID_y','Humidity','Temperature'], axis=1, inplace=True) 
         df_cleaned = df
-        self.target_variable = df_cleaned['VO2']
-        df_cleaned.drop(['VO2'], axis=1, inplace=True) 
-
+        df_cleaned['VO2'] = df_cleaned['VO2']/df_cleaned['Weight']
+        
         ## Standardize the Age, weight and height
         # check again
-        print('Average Age: ', df_cleaned['Age'].mean(), 'std Age: ', df_cleaned['Age'].std())
-        print('Average Weight: ', df_cleaned['Weight'].mean(), 'std Weight: ', df_cleaned['Weight'].std())
-        print('Average Height: ', df_cleaned['Height'].mean(), 'std Height: ', df_cleaned['Height'].std())
+        # Save mean and std for denormalization
+        self.stats = {
+            'Age': {'mean': df_cleaned['Age'].mean(), 'std': df_cleaned['Age'].std()},
+            'Weight': {'mean': df_cleaned['Weight'].mean(), 'std': df_cleaned['Weight'].std()},
+            'Height': {'mean': df_cleaned['Height'].mean(), 'std': df_cleaned['Height'].std()},
+            'time': {'mean': df_cleaned['time'].mean(), 'std': df_cleaned['time'].std()},
+            'Speed': {'mean': df_cleaned['Speed'].mean(), 'std': df_cleaned['Speed'].std()},
+            'HR': {'mean': df_cleaned['HR'].mean(), 'std': df_cleaned['HR'].std()},
+            'VO2': {'mean': df_cleaned['VO2'].mean(), 'std': df_cleaned['VO2'].std()},
+       #     'VO2_weight': {'mean': df_cleaned['VO2_weight'].mean(), 'std': df_cleaned['VO2_weight'].std()}
+        }
 
-        df_cleaned['Weight'] = (df_cleaned['Weight'] - df_cleaned['Weight'].mean()) / df_cleaned['Weight'].std()
-        df_cleaned['Height'] = (df_cleaned['Height'] - df_cleaned['Height'].mean()) / df_cleaned['Height'].std()
-        df_cleaned['Age'] = (df_cleaned['Age'] - df_cleaned['Age'].mean()) / df_cleaned['Age'].std()
-        
+        # Standardize the values
+        df_cleaned['Age'] = (df_cleaned['Age'] - self.stats['Age']['mean']) / self.stats['Age']['std']
+        df_cleaned['Weight'] = (df_cleaned['Weight'] - self.stats['Weight']['mean']) / self.stats['Weight']['std']
+        df_cleaned['Height'] = (df_cleaned['Height'] - self.stats['Height']['mean']) / self.stats['Height']['std']
+        df_cleaned['time'] = (df_cleaned['time'] - self.stats['time']['mean']) / self.stats['time']['std']
+        df_cleaned['Speed'] = (df_cleaned['Speed'] - self.stats['Speed']['mean']) / self.stats['Speed']['std']
+        df_cleaned['HR'] = (df_cleaned['HR'] - self.stats['HR']['mean']) / self.stats['HR']['std']
+        df_cleaned['VO2'] = (df_cleaned['VO2'] - self.stats['VO2']['mean']) / self.stats['VO2']['std']
+       # df_cleaned['VO2_Weight'] = (df_cleaned['VO2_Weight'] - self.stats['VO2_weight']['mean']) / self.stats['VO2_weight']['std']
+
+        self.target_variable = df_cleaned['VO2']
+        #df_cleaned.drop(['VO2_Weight'], axis=1, inplace=True) 
+        df_cleaned.drop(['VO2'], axis=1, inplace=True)
+
         unique_ids = df_cleaned['ID_x'].unique()
         train_size = int(len(unique_ids) * self.train_ratio)
         train_ids = unique_ids[:train_size]
