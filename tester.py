@@ -19,10 +19,11 @@ def get_parser():
     parser.add_argument('--future_data', default=32, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
-    parser.add_argument('--model_name', default='NN_residual_dilation3_kl3', type=str)
-    parser.add_argument('--kernel_len', default=3, type=int)
-    parser.add_argument('--dilation', default=3, type=int)
+    parser.add_argument('--model_name', default='NN3_shallow_dilation1_kl1', type=str)
+    parser.add_argument('--kernel_len', default=1, type=int)
     parser.add_argument('--model_path', default='./saved_models', type=str)
+    parser.add_argument('--dilation', default=1, type=int)
+
     return parser.parse_args()
 
 class Tester:
@@ -36,9 +37,8 @@ class Tester:
         self.test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=self.args.batch_size, shuffle=False, num_workers=4)
 
     def test(self):
-        model = NN_Model(self.args.kernel_len,self.args.dilation).to(self.device)
-        model_path = os.path.join(self.args.model_path,self.args.model_name,'model_epoch_14.pth')
-
+        model = NN_Model(kernel_len=self.args.kernel_len,dilation=self.args.dilation).to(self.device)
+        model_path = os.path.join(self.args.model_path,self.args.model_name,'model_epoch_4.pth')
         model.load_state_dict(torch.load(model_path))
         model.eval()
         all_targets = []
