@@ -34,10 +34,10 @@ def get_parser():
     parser.add_argument('--future_data', default=32, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
-    parser.add_argument('--model_name', default='NN2_normalized_newID', type=str)
+    parser.add_argument('--model_name', default='NN2_kl3', type=str)
     parser.add_argument('--wandb', default=False, type=bool)
     parser.add_argument('--wandb_name', default='Zepp', type=str)
-    parser.add_argument('--kernel_len', default=5, type=int)
+    parser.add_argument('--kernel_len', default=3, type=int)
     return parser.parse_args()
 
 class Trainer:
@@ -161,7 +161,18 @@ class Trainer:
             if self.args.wandb:
                     dic = {x: v[-1] for x,v in self.log.items() if v }
                     wandb.log(dic)
+            
+            self.save_model(epoch)
 
+    def save_model(self, epoch):
+        # Create directory based on model name if it doesn't exist
+        model_dir = os.path.join('./saved_models', self.args.model_name)
+        os.makedirs(model_dir, exist_ok=True)
+
+        # Save the model
+        model_path = os.path.join(model_dir, f'model_epoch_{epoch+1}.pth')
+        torch.save(self.model.state_dict(), model_path)
+        print(f"Model saved at {model_path}")
 
     # def plot_model_output(self, data_loader, num_samples=100):
     #     self.model.eval()
