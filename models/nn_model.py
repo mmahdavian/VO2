@@ -23,8 +23,8 @@ class NN_Model(nn.Module):
             nn.MaxPool1d(kernel_size=2, stride=2),
        #     nn.Conv1d(128, 128, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
 
-            nn.Conv1d(128, 256, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
-            nn.ReLU(),
+##nn4            nn.Conv1d(128, 256, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2),
+##nn4            nn.ReLU(),
         #    nn.MaxPool1d(kernel_size=2, stride=2)
         )
 
@@ -46,7 +46,7 @@ class NN_Model(nn.Module):
             nn.ReLU()
         )
         self.fc = nn.Sequential(
-            nn.Linear(256+128, 128),
+            nn.Linear(128+128, 128),
             nn.ReLU(),
             nn.Linear(128, 64),
             nn.ReLU(),

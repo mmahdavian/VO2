@@ -7,3 +7,5 @@ models/__pycache__/
 wandb/debug-internal.log
 wandb/debug.log
 wandb/latest-run
+saved_models
+saved_models/*
