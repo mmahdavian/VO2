@@ -34,7 +34,7 @@ def get_parser():
     parser.add_argument('--future_data', default=32, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
-    parser.add_argument('--model_name', default='NN1_normalized', type=str)
+    parser.add_argument('--model_name', default='NN1_normalized_newID', type=str)
     parser.add_argument('--wandb', default=True, type=bool)
     parser.add_argument('--wandb_name', default='Zepp', type=str)
     parser.add_argument('--kernel_len', default=5, type=int)
@@ -161,6 +161,54 @@ class Trainer:
             if self.args.wandb:
                     dic = {x: v[-1] for x,v in self.log.items() if v }
                     wandb.log(dic)
+
+
+    def plot_model_output(self, data_loader, num_samples=100):
+        self.model.eval()
+        all_targets = []
+        all_outputs = []
+        all_stats = []
+
+        with torch.no_grad():
+            for times, speed, HR, input_general, targets, stats in tqdm(data_loader):
+                times = times.float().unsqueeze(1).to(self.device)
+                speed = speed.float().unsqueeze(1).to(self.device)
+                HR = HR.float().unsqueeze(1).to(self.device)
+                input_general = input_general.float().to(self.device)
+                targets = targets.float().to(self.device)
+
+                # Forward pass
+                outputs = self.model(times, speed, HR, input_general)
+
+                all_targets.append(targets.cpu().numpy())
+                all_outputs.append(outputs.cpu().numpy())
+
+        all_targets = np.concatenate(all_targets, axis=0)
+        all_outputs = np.concatenate(all_outputs, axis=0)
+
+        # Destandardize using VO2 mean and std from stats
+        vo2_mean = stats['VO2']['mean']  
+        vo2_std = stats['VO2']['std']  
+
+        destandardized_targets = all_targets * vo2_std + vo2_mean
+        destandardized_outputs = all_outputs * vo2_std + vo2_mean
+
+        # Select a subset of samples to plot
+        indices = np.random.choice(len(destandardized_targets), num_samples, replace=False)
+        sampled_targets = destandardized_targets[indices]
+        sampled_outputs = destandardized_outputs[indices]
+
+        # Plot the results
+        plt.figure(figsize=(10, 6))
+        plt.plot(sampled_targets, label="True Values", marker='o', linestyle='dashed', alpha=0.7)
+        plt.plot(sampled_outputs, label="Model Predictions", marker='x', linestyle='dashed', alpha=0.7)
+        plt.xlabel("Sample Index")
+        plt.ylabel("VO2 Value")
+        plt.title("Destandardized Model Output vs True Values")
+        plt.legend()
+        plt.grid()
+        plt.show()
+
 
     def evaluate(self, data_loader):
         self.model.eval()

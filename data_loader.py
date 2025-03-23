@@ -8,6 +8,7 @@ import pandas as pd
 
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.model_selection import train_test_split
 
 class Feeder:
     def __init__(self,args, split='train'):
@@ -60,9 +61,11 @@ class Feeder:
         df_cleaned.drop(['VO2'], axis=1, inplace=True)
 
         unique_ids = df_cleaned['ID_x'].unique()
-        train_size = int(len(unique_ids) * self.train_ratio)
-        train_ids = unique_ids[:train_size]
-        test_ids = unique_ids[train_size:]
+        train_ids, test_ids = train_test_split(unique_ids, test_size=self.test_ratio, random_state=42)
+
+#        train_size = int(len(unique_ids) * self.train_ratio)
+#        train_ids = unique_ids[:train_size]
+#        test_ids = unique_ids[train_size:]
 
         groups = dict(tuple(df_cleaned.groupby('ID_test')))
         
