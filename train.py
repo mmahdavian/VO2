@@ -34,8 +34,8 @@ def get_parser():
     parser.add_argument('--future_data', default=32, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
-    parser.add_argument('--model_name', default='NN1', type=str)
-    parser.add_argument('--wandb', default=False, type=bool)
+    parser.add_argument('--model_name', default='NN1_normalized', type=str)
+    parser.add_argument('--wandb', default=True, type=bool)
     parser.add_argument('--wandb_name', default='Zepp', type=str)
     parser.add_argument('--kernel_len', default=5, type=int)
     return parser.parse_args()
@@ -137,23 +137,23 @@ class Trainer:
             self.log['lrate'].append(optimizer.param_groups[0]['lr'])
 
             # Evaluate on train and test sets
-    #        train_metrics = self.evaluate(self.train_loader)
-     #       test_metrics = self.evaluate(self.test_loader)
+            train_metrics = self.evaluate(self.train_loader)
+            test_metrics = self.evaluate(self.test_loader)
 
-    #        print(f"Train Metrics: MAE: {train_metrics['mae']:.4f}, MSE: {train_metrics['mse']:.4f}, "
-    #                f"Pearson: {train_metrics['pearson']:.4f}, R2: {train_metrics['r2']:.4f}")
-    #        print(f"Test Metrics: MAE: {test_metrics['mae']:.4f}, MSE: {test_metrics['mse']:.4f}, "
-    #                f"Pearson: {test_metrics['pearson']:.4f}, R2: {test_metrics['r2']:.4f}")
+            print(f"Train Metrics: MAE: {train_metrics['mae']:.4f}, MSE: {train_metrics['mse']:.4f}, "
+                    f"Pearson: {train_metrics['pearson']:.4f}, R2: {train_metrics['r2']:.4f}")
+            print(f"Test Metrics: MAE: {test_metrics['mae']:.4f}, MSE: {test_metrics['mse']:.4f}, "
+                    f"Pearson: {test_metrics['pearson']:.4f}, R2: {test_metrics['r2']:.4f}")
 
-            # self.log['MAE_train'].append(train_metrics['mae'])
-            # self.log['MSE_train'].append(train_metrics['mse'])
-            # self.log['R2_train'].append(train_metrics['r2'])
-            # self.log['Pearson_train'].append(train_metrics['pearson'])
+            self.log['MAE_train'].append(train_metrics['mae'])
+            self.log['MSE_train'].append(train_metrics['mse'])
+            self.log['R2_train'].append(train_metrics['r2'])
+            self.log['Pearson_train'].append(train_metrics['pearson'])
 
-            # self.log['MAE_test'].append(test_metrics['mae'])
-            # self.log['MSE_test'].append(test_metrics['mse'])
-            # self.log['R2_test'].append(test_metrics['r2'])
-            # self.log['Pearson_test'].append(test_metrics['pearson'])
+            self.log['MAE_test'].append(test_metrics['mae'])
+            self.log['MSE_test'].append(test_metrics['mse'])
+            self.log['R2_test'].append(test_metrics['r2'])
+            self.log['Pearson_test'].append(test_metrics['pearson'])
 
 
             if self.args.wandb:
