@@ -27,7 +27,7 @@ def get_parser():
     parser.add_argument('--test_ratio', type=float, default=0.2, help='test ratio')
     parser.add_argument('--batch_size', type=int, default=32, help='batch size')
     parser.add_argument('--epochs', type=int, default=100, help='number of epochs')
-    parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
+    parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
     parser.add_argument('--lr_update_interval', type=int, default=1, help='learning rate update interval')
     parser.add_argument('--weight_decay', default=1e-4, type=float) # 1e-4
     parser.add_argument('--past_data', default=32, type=int)
@@ -58,7 +58,7 @@ class Trainer:
     def load_logger(self):
         self.log = OrderedDict([
                         ('epoch', []),
-                        ('train_loss_total', []),
+                        ('MSE_loss_total', []),
                         ('MAE_train', []),
                         ('MSE_train', []),
                         ('RMSE_train', []),
@@ -105,7 +105,7 @@ class Trainer:
         self.model.train()
         for epoch in range(self.args.epochs):
             epoch_loss = 0.0
-            for (times,speed,HR,input_general,targets) in tqdm(self.train_loader, desc=f"Epoch {epoch+1}/{self.args.epochs}"):
+            for (times,speed,HR,input_general,targets,stats) in tqdm(self.train_loader, desc=f"Epoch {epoch+1}/{self.args.epochs}"):
                 times = times.float().unsqueeze(1).to(self.device)
                 speed = speed.float().unsqueeze(1).to(self.device)
                 HR = HR.float().unsqueeze(1).to(self.device)
@@ -132,7 +132,7 @@ class Trainer:
             if epoch % self.args.lr_update_interval == 0:
                 self.scheduler.step()
 
-            self.log['train_loss_total'].append(avg_loss)
+            self.log['MSE_loss_total'].append(avg_loss)
             self.log['epoch'].append(epoch)
             self.log['lrate'].append(optimizer.param_groups[0]['lr'])
 
@@ -140,18 +140,20 @@ class Trainer:
             train_metrics = self.evaluate(self.train_loader)
             test_metrics = self.evaluate(self.test_loader)
 
-            print(f"Train Metrics: MAE: {train_metrics['mae']:.4f}, MSE: {train_metrics['mse']:.4f}, "
+            print(f"Train Metrics: MAE: {train_metrics['mae']:.4f}, MSE: {train_metrics['mse']:.4f}, RMSE: {train_metrics['rmse']:.4f}, "
                     f"Pearson: {train_metrics['pearson']:.4f}, R2: {train_metrics['r2']:.4f}")
-            print(f"Test Metrics: MAE: {test_metrics['mae']:.4f}, MSE: {test_metrics['mse']:.4f}, "
+            print(f"Test Metrics: MAE: {test_metrics['mae']:.4f}, MSE: {test_metrics['mse']:.4f}, RMSE: {test_metrics['rmse']:.4f}, "
                     f"Pearson: {test_metrics['pearson']:.4f}, R2: {test_metrics['r2']:.4f}")
 
             self.log['MAE_train'].append(train_metrics['mae'])
             self.log['MSE_train'].append(train_metrics['mse'])
+            self.log['RMSE_train'].append(train_metrics['rmse'])
             self.log['R2_train'].append(train_metrics['r2'])
             self.log['Pearson_train'].append(train_metrics['pearson'])
 
             self.log['MAE_test'].append(test_metrics['mae'])
             self.log['MSE_test'].append(test_metrics['mse'])
+            self.log['RMSE_test'].append(test_metrics['rmse'])
             self.log['R2_test'].append(test_metrics['r2'])
             self.log['Pearson_test'].append(test_metrics['pearson'])
 
@@ -166,7 +168,7 @@ class Trainer:
         all_outputs = []
 
         with torch.no_grad():
-            for times,speed,HR,input_general,targets in tqdm(data_loader):
+            for times,speed,HR,input_general,targets,stats in tqdm(data_loader):
 
                 times = times.float().unsqueeze(1).to(self.device)
                 speed = speed.float().unsqueeze(1).to(self.device)
@@ -185,10 +187,11 @@ class Trainer:
 
         mae = np.mean(np.abs(all_outputs - all_targets))
         mse = np.mean((all_outputs - all_targets) ** 2)
+        rmse = np.sqrt(mse)
         pearson = np.corrcoef(all_outputs.flatten(), all_targets.flatten())[0, 1]
         r2 = r2_score(all_targets, all_outputs)
 
-        return {"mae": mae, "mse": mse, "pearson": pearson, "r2": r2}
+        return {"mae": mae, "mse": mse, "rmse": rmse, "pearson": pearson, "r2": r2}
 
 def main():
     args = get_parser()

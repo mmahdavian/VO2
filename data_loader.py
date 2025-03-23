@@ -140,4 +140,4 @@ class Feeder:
         return len(self.input_general_data)
     
     def __getitem__(self, idx):
-        return self.time_data[idx], self.walking_speed[idx], self.HR[idx], self.input_general_data[idx], self.output[idx]    
+        return self.time_data[idx], self.walking_speed[idx], self.HR[idx], self.input_general_data[idx], self.output[idx], self.stats  
