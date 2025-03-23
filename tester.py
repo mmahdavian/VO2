@@ -19,8 +19,9 @@ def get_parser():
     parser.add_argument('--future_data', default=32, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
-    parser.add_argument('--model_name', default='NN_residual_kl3', type=str)
+    parser.add_argument('--model_name', default='NN_residual_dilation3_kl3', type=str)
     parser.add_argument('--kernel_len', default=3, type=int)
+    parser.add_argument('--dilation', default=3, type=int)
     parser.add_argument('--model_path', default='./saved_models', type=str)
     return parser.parse_args()
 
@@ -35,8 +36,9 @@ class Tester:
         self.test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=self.args.batch_size, shuffle=False, num_workers=4)
 
     def test(self):
-        model = NN_Model(kernel_len=self.args.kernel_len).to(self.device)
-        model_path = os.path.join(self.args.model_path,self.args.model_name,'model_epoch_13.pth')
+        model = NN_Model(self.args.kernel_len,self.args.dilation).to(self.device)
+        model_path = os.path.join(self.args.model_path,self.args.model_name,'model_epoch_14.pth')
+
         model.load_state_dict(torch.load(model_path))
         model.eval()
         all_targets = []
@@ -69,8 +71,8 @@ class Tester:
         all_targets_ds = np.concatenate(all_targets_ds, axis=0)
         all_outputs_ds = np.concatenate(all_outputs_ds, axis=0)
 
-        start_data_num = 500
-        end_data_num = 1500
+        start_data_num = 1500
+        end_data_num = 2500
         plt.figure(figsize=(10, 6))
         plt.plot(all_outputs_ds[start_data_num:end_data_num], label='Predicted', color='blue')
         plt.plot(all_targets_ds[start_data_num:end_data_num], label='Actual', color='orange')
@@ -79,7 +81,7 @@ class Tester:
         plt.title('Comparison of Predicted and Actual VO2')
         plt.legend()
         plt.grid(True)
-        plt.savefig('comparison.png')
+        plt.savefig('comparison_dilation.png')
         plt.show()
         
         print()

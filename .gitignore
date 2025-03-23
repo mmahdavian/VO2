@@ -9,4 +9,4 @@ wandb/debug.log
 wandb/latest-run
 saved_models
 saved_models/*
-comparison.png
+*.png

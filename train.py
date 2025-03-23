@@ -34,10 +34,12 @@ def get_parser():
     parser.add_argument('--future_data', default=32, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
-    parser.add_argument('--model_name', default='NN_residual_kl3', type=str)
-    parser.add_argument('--wandb', default=True, type=bool)
+    parser.add_argument('--model_name', default='NN_residual_dilation_kl3', type=str)
+    parser.add_argument('--wandb', default=False, type=bool)
     parser.add_argument('--wandb_name', default='Zepp', type=str)
     parser.add_argument('--kernel_len', default=3, type=int)
+    parser.add_argument('--dilation', default=3, type=int)
+
     return parser.parse_args()
 
 class Trainer:
@@ -94,9 +96,9 @@ class Trainer:
                 nn.init.zeros_(layer.bias)
                     
     def train(self):
-        self.model = NN_Model(self.args.kernel_len).to(self.device)
+      #  self.model = TCN(input_channels=1, const_dim=4, num_layers=4, kernel_size=self.args.kernel_len).to(self.device)
+        self.model = NN_Model(self.args.kernel_len,self.args.dilation).to(self.device)
         self.initialize_weights(self.model)
-#        model = TCN(input_channels=1, const_dim=4, num_layers=4, kernel_size=self.args.kernel_len).to(self.device)
         criterion = nn.MSELoss()
         optimizer = optim.AdamW(self.model.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
         self.scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.args.epochs, eta_min=self.args.lr/20)
