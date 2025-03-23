@@ -19,7 +19,7 @@ def get_parser():
     parser.add_argument('--future_data', default=32, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
-    parser.add_argument('--model_name', default='NN2_kl3', type=str)
+    parser.add_argument('--model_name', default='NN_residual_kl3', type=str)
     parser.add_argument('--kernel_len', default=3, type=int)
     parser.add_argument('--model_path', default='./saved_models', type=str)
     return parser.parse_args()
@@ -36,7 +36,7 @@ class Tester:
 
     def test(self):
         model = NN_Model(kernel_len=self.args.kernel_len).to(self.device)
-        model_path = os.path.join(self.args.model_path,self.args.model_name,'model_epoch_11.pth')
+        model_path = os.path.join(self.args.model_path,self.args.model_name,'model_epoch_13.pth')
         model.load_state_dict(torch.load(model_path))
         model.eval()
         all_targets = []

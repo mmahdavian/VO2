@@ -35,7 +35,7 @@ def get_parser():
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
     parser.add_argument('--model_name', default='NN_residual_kl3', type=str)
-    parser.add_argument('--wandb', default=False, type=bool)
+    parser.add_argument('--wandb', default=True, type=bool)
     parser.add_argument('--wandb_name', default='Zepp', type=str)
     parser.add_argument('--kernel_len', default=3, type=int)
     return parser.parse_args()
