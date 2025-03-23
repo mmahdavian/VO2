@@ -79,6 +79,7 @@ class Tester:
         plt.title('Comparison of Predicted and Actual VO2')
         plt.legend()
         plt.grid(True)
+        plt.savefig('comparison.png')
         plt.show()
         
         print()
