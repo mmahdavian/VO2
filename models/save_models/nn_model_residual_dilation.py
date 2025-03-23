@@ -55,13 +55,10 @@ class NN_Model(nn.Module):
     def forward(self, time, speed, HR, general):
         general = self.constants(general)
         ## time
-        x_time = self.relu1(self.conv1(time)+time)
-        x_time2 = self.pool1(x_time)
-        x_time2 = self.relu2(self.conv2(x_time2))
-        x_time3 = self.pool2(x_time2)
-        x_time3 = self.relu3(self.conv3(x_time3))
-        x_time4 = self.pool3(x_time3)
-        x_time4 = self.relu4(self.conv4(x_time4))
+        x_time = self.pool1(self.relu1(self.conv1(time)+time))
+        x_time = self.pool2(self.relu2(self.conv2(x_time)+self.proj2(x_time)))
+        x_time = self.pool3(self.relu3(self.conv3(x_time)+self.proj3(x_time)))
+        x_time = self.relu4(self.conv4(x_time)+self.proj4(x_time))
         
         ## speed
         x_speed = self.pool1(self.relu1(self.conv1(speed)+speed))
