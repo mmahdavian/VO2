@@ -53,7 +53,7 @@ class NN_Model(nn.Module):
             nn.LeakyReLU()
         )
         self.fc = nn.Sequential(
-            nn.Linear(128, 64),
+            nn.Linear(64+16, 64),
             nn.LeakyReLU(),
             nn.Linear(64, 32),
             nn.LeakyReLU(),
@@ -101,7 +101,7 @@ class NN_Model(nn.Module):
         x = x.mean(dim=-1)
 
      #   x = torch.mean(x, dim=-1, keepdim=True)  # Global average pooling
-#        x = self.mixer(x).squeeze(-1)  # Shape: (batch_size, 64, 1)
+ #       x = self.mixer(x).squeeze(-1)  # Shape: (batch_size, 64, 1)
         x = torch.cat((x, general), dim=1) # Shape: (batch_size, 64+64)
         x = self.fc(x)  # Shape: (batch_size, output_size)
         return x.squeeze(1)  # Shape: (batch_size)
