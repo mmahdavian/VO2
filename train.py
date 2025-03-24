@@ -16,7 +16,7 @@ import wandb
 from data_loader import Feeder
 from models.nn_model import NN_Model
 from models.rnn_model import RNN_Model
-from models.transformer_model import Transformer_Model
+from models.transformer_model2 import Transformer_Model2
 import argparse
 from collections import OrderedDict
 
@@ -35,7 +35,7 @@ def get_parser():
     parser.add_argument('--future_data', default=32, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
-    parser.add_argument('--model_name', default='Transformer', type=str)
+    parser.add_argument('--model_name', default='Transformer2', type=str)
     parser.add_argument('--wandb', default=False, type=bool)
     parser.add_argument('--wandb_name', default='Zepp', type=str)
     parser.add_argument('--kernel_len', default=3, type=int)
@@ -78,7 +78,24 @@ class Trainer:
                      #   ('elapsed_time_val', []),
                 ])
 
-    def initialize_weights(self,model):
+    # def initialize_weights(self,model):
+    #     for layer in model.modules():
+    #         if isinstance(layer, (nn.Conv1d, nn.Conv2d, nn.Conv3d)):
+    #             # Kaiming He Initialization for Conv layers
+    #             nn.init.kaiming_normal_(layer.weight, mode='fan_in', nonlinearity='relu')
+    #             if layer.bias is not None:
+    #                 nn.init.zeros_(layer.bias)
+    #         elif isinstance(layer, nn.Linear):
+    #             # Kaiming He Initialization for Linear layers with ReLU
+    #             nn.init.kaiming_normal_(layer.weight, mode='fan_in', nonlinearity='relu')
+    #             if layer.bias is not None:
+    #                 nn.init.zeros_(layer.bias)
+    #         elif isinstance(layer, (nn.BatchNorm1d, nn.BatchNorm2d, nn.BatchNorm3d)):
+    #             # Initialize BatchNorm to be identity transformation
+    #             nn.init.ones_(layer.weight)
+    #             nn.init.zeros_(layer.bias)
+
+    def initialize_weights(self, model):
         for layer in model.modules():
             if isinstance(layer, (nn.Conv1d, nn.Conv2d, nn.Conv3d)):
                 # Kaiming He Initialization for Conv layers
@@ -94,11 +111,26 @@ class Trainer:
                 # Initialize BatchNorm to be identity transformation
                 nn.init.ones_(layer.weight)
                 nn.init.zeros_(layer.bias)
-                    
+            elif isinstance(layer, nn.Embedding):
+                # Initialize Embedding layers
+                nn.init.normal_(layer.weight, mean=0, std=0.01)
+            elif isinstance(layer, nn.MultiheadAttention):
+                # Initialize MultiheadAttention layers
+                nn.init.xavier_uniform_(layer.in_proj_weight)
+                if layer.in_proj_bias is not None:
+                    nn.init.zeros_(layer.in_proj_bias)
+                nn.init.xavier_uniform_(layer.out_proj.weight)
+                if layer.out_proj.bias is not None:
+                    nn.init.zeros_(layer.out_proj.bias)
+            elif isinstance(layer, nn.LayerNorm):
+                # Initialize LayerNorm layers
+                nn.init.ones_(layer.weight)
+                nn.init.zeros_(layer.bias)
+
     def train(self):
-        self.model = RNN_Model(self.args.kernel_len,self.args.dilation).to(self.device)
+    #    self.model = RNN_Model(self.args.kernel_len,self.args.dilation).to(self.device)
     #    self.model = NN_Model(self.args.kernel_len,self.args.dilation).to(self.device)
-    #    self.model = Transformer_Model().to(self.device)
+        self.model = Transformer_Model2().to(self.device)
         
         self.initialize_weights(self.model)
         criterion = nn.MSELoss()

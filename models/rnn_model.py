@@ -21,16 +21,16 @@ class RNN_Model(nn.Module):
         self.proj2 = nn.Conv1d(64, 1, kernel_size=1, stride=1, padding=0)
         self.ln2 = nn.LayerNorm(32)
 
-        self.drop = nn.Dropout(p=0.3)
+        self.drop = nn.Dropout(p=0.2)
 
 ##
         self.embed_time = nn.Linear(1, 64)
         self.embed_speed = nn.Linear(1, 64)
         self.embed_HR = nn.Linear(1, 64)
 
-        self.gru_time = nn.GRU(64, 64, batch_first=True, dropout=0.3)
-        self.gru_speed = nn.GRU(64, 64, batch_first=True, dropout=0.3)
-        self.gru_HR = nn.GRU(64, 64, batch_first=True, dropout=0.3)
+        self.gru_time = nn.GRU(64, 64, batch_first=True, dropout=0.2)
+        self.gru_speed = nn.GRU(64, 64, batch_first=True, dropout=0.2)
+        self.gru_HR = nn.GRU(64, 64, batch_first=True, dropout=0.2)
    #     self.lstm_time = nn.LSTM(64, 128, batch_first=True, dropout=0.2)
    #     self.lstm_speed = nn.LSTM(64, 128, batch_first=True, dropout=0.2)
    #     self.lstm_HR = nn.LSTM(64, 128, batch_first=True, dropout=0.2)
