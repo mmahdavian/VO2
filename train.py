@@ -35,8 +35,9 @@ def get_parser():
     parser.add_argument('--future_data', default=32, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
-    parser.add_argument('--model_name', default='Transformer2', type=str)
-    parser.add_argument('--wandb', default=False, type=bool)
+    parser.add_argument('--model_name', default='NN', type=str)
+    parser.add_argument('--model_type',type=str,choices=["NN", "RNN", "Transformer"],required=True)
+    parser.add_argument('--wandb', default=True, type=bool)
     parser.add_argument('--wandb_name', default='Zepp', type=str)
     parser.add_argument('--kernel_len', default=3, type=int)
     parser.add_argument('--dilation', default=3, type=int)
@@ -67,33 +68,14 @@ class Trainer:
                         ('R2_train', []),
                         ('Pearson_train',[]),
                         ('lrate', []),
-                      #  ('elapsed_time_train', []),
-                      #  ('test_loss_total', []),
+
                         ('MAE_test', []),
                         ('MSE_test', []),
                         ('RMSE_test', []),
                         ('R2_test', []),
                         ('Pearson_test',[])
-                      #  ('test_accuracy', []),
-                     #   ('elapsed_time_val', []),
-                ])
 
-    # def initialize_weights(self,model):
-    #     for layer in model.modules():
-    #         if isinstance(layer, (nn.Conv1d, nn.Conv2d, nn.Conv3d)):
-    #             # Kaiming He Initialization for Conv layers
-    #             nn.init.kaiming_normal_(layer.weight, mode='fan_in', nonlinearity='relu')
-    #             if layer.bias is not None:
-    #                 nn.init.zeros_(layer.bias)
-    #         elif isinstance(layer, nn.Linear):
-    #             # Kaiming He Initialization for Linear layers with ReLU
-    #             nn.init.kaiming_normal_(layer.weight, mode='fan_in', nonlinearity='relu')
-    #             if layer.bias is not None:
-    #                 nn.init.zeros_(layer.bias)
-    #         elif isinstance(layer, (nn.BatchNorm1d, nn.BatchNorm2d, nn.BatchNorm3d)):
-    #             # Initialize BatchNorm to be identity transformation
-    #             nn.init.ones_(layer.weight)
-    #             nn.init.zeros_(layer.bias)
+                ])
 
     def initialize_weights(self, model):
         for layer in model.modules():
@@ -128,10 +110,17 @@ class Trainer:
                 nn.init.zeros_(layer.bias)
 
     def train(self):
-    #    self.model = RNN_Model(self.args.kernel_len,self.args.dilation).to(self.device)
-    #    self.model = NN_Model(self.args.kernel_len,self.args.dilation).to(self.device)
-        self.model = Transformer_Model2().to(self.device)
-        
+        if self.args.model_type=='RNN':
+            self.model = RNN_Model(self.args.kernel_len,self.args.dilation).to(self.device)
+            print('Model Type is Recurrent Neural Network based')
+        elif self.args.model_type=='NN':
+            self.model = NN_Model(self.args.kernel_len,self.args.dilation).to(self.device)
+            print('Model Type is Convoloutional Neural Network based')
+        elif self.args.model_type=='Transformer':
+            self.model = Transformer_Model2().to(self.device)
+            print('Model Type is Transfortmer based')
+
+
         self.initialize_weights(self.model)
         criterion = nn.MSELoss()
         optimizer = optim.AdamW(self.model.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)

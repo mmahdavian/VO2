@@ -1,4 +1,3 @@
-
 import torch
 import torch.nn as nn
 
@@ -20,9 +19,7 @@ class RNN_Model(nn.Module):
         self.pool2 = nn.MaxPool1d(kernel_size=2, stride=2)
         self.proj2 = nn.Conv1d(64, 1, kernel_size=1, stride=1, padding=0)
         self.ln2 = nn.LayerNorm(32)
-
         self.drop = nn.Dropout(p=0.2)
-
 ##
         self.embed_time = nn.Linear(1, 64)
         self.embed_speed = nn.Linear(1, 64)
@@ -31,10 +28,6 @@ class RNN_Model(nn.Module):
         self.gru_time = nn.GRU(64, 64, batch_first=True, dropout=0.2)
         self.gru_speed = nn.GRU(64, 64, batch_first=True, dropout=0.2)
         self.gru_HR = nn.GRU(64, 64, batch_first=True, dropout=0.2)
-   #     self.lstm_time = nn.LSTM(64, 128, batch_first=True, dropout=0.2)
-   #     self.lstm_speed = nn.LSTM(64, 128, batch_first=True, dropout=0.2)
-   #     self.lstm_HR = nn.LSTM(64, 128, batch_first=True, dropout=0.2)
-
 
 ##
         self.constants = nn.Sequential(
@@ -55,6 +48,7 @@ class RNN_Model(nn.Module):
             nn.LeakyReLU(),
             nn.Linear(64, 1)
         )
+
 
     def forward(self, time, speed, HR, general):
         general = self.constants(general)
@@ -92,13 +86,13 @@ class RNN_Model(nn.Module):
         gru_speed,hid_speed = self.gru_speed(x_speed_gru)
         gru_HR,hid_HR = self.gru_HR(x_HR_gru)
         x_gru = self.drop(torch.cat((gru_time[:,-1], gru_speed[:,-1], gru_HR[:,-1]), dim=1))
- 
+
       #  _, (lstm_time, _) = self.lstm_time(x_time)
       #  _, (lstm_speed, _) = self.lstm_speed(x_speed)
       #  _, (lstm_HR, _) = self.lstm_HR(x_HR)
 #        x_gru = self.drop(torch.cat((lstm_time.squeeze(0), lstm_speed.squeeze(0), lstm_HR.squeeze(0)), dim=1))
 
         x = self.drop(torch.cat((x, x_gru, general), dim=1))
-        x = self.fc(x)  
-        return x.squeeze(1) 
+        x = self.fc(x)
+        return x.squeeze(1)
 

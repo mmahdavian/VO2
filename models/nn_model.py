@@ -1,4 +1,3 @@
-
 import torch
 import torch.nn as nn
 
@@ -22,36 +21,18 @@ class NN_Model(nn.Module):
         self.proj2 = nn.Conv1d(64, 1, kernel_size=1, stride=1, padding=0)
         self.ln2 = nn.LayerNorm(32)
 
-        self.drop = nn.Dropout(p=0.1)
-        # self.conv3 = nn.Conv1d(64, 128, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2 * self.dilation1, dilation=self.dilation1)
-        # self.long_conv3 = nn.Conv1d(64, 128, kernel_size=self.kernel_len*5, stride=1, padding=self.kernel_len*5 // 2 * self.dilation2, dilation=self.dilation2)
-        # self.relu3 = nn.LeakyReLU()
-        # self.pool3 = nn.MaxPool1d(kernel_size=2, stride=2)
-        # self.proj3 = nn.Conv1d(64, 1, kernel_size=1, stride=1, padding=0)
-        # self.bn3 = nn.BatchNorm1d(128)
-
-        # self.conv4 = nn.Conv1d(128, 256, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2 * self.dilation1, dilation=self.dilation1)
-        # self.long_conv4 = nn.Conv1d(128, 256, kernel_size=self.kernel_len*5, stride=1, padding=self.kernel_len*5 // 2 * self.dilation2, dilation=self.dilation2)
-        # self.relu4 = nn.LeakyReLU()
-        # self.proj4 = nn.Conv1d(128, 1, kernel_size=1, stride=1, padding=0)
-        # self.bn4 = nn.BatchNorm1d(256)
+        self.drop = nn.Dropout(p=0.2)
 
         self.constants = nn.Sequential(
             nn.Linear(4, 32),
             nn.LeakyReLU(),
             nn.Linear(32, 64),
-       #     nn.LeakyReLU(),
-       #     nn.Linear(64, 128),
-       #     nn.LeakyReLU()
         )
 
-      #  self.global_pool = nn.AdaptiveAvgPool1d(1)  # Global average pooling
-      #  self.mixer = nn.Linear(24,1)
         self.mixer = nn.Sequential(
             nn.Linear(48, 24),
             nn.LeakyReLU(),
             nn.Linear(24, 1),
-      #      nn.LeakyReLU()
         )
         self.fc = nn.Sequential(
             nn.Linear(192, 64),
@@ -60,7 +41,6 @@ class NN_Model(nn.Module):
             nn.LeakyReLU(),
             nn.Linear(32, 1)
         )
-    #    self.fc = nn.Linear(128+128, 1)
 
     def forward(self, time, speed, HR, general):
         general = self.constants(general)
@@ -86,11 +66,9 @@ class NN_Model(nn.Module):
         x_HR_long = self.drop(self.pool1(self.relu1(self.ln1(self.long_conv1(HR)+HR))))
         x_HR_long = self.pool2(self.relu2(self.ln2(self.long_conv2(x_HR_long)+self.proj2(x_HR_long))))
 
-        x = torch.cat((x_time,x_time_long,x_speed,x_speed_long,x_HR,x_HR_long), dim=2)
+        x = self.drop(torch.cat((x_time,x_time_long,x_speed,x_speed_long,x_HR,x_HR_long), dim=2))
         x = x.mean(dim=-1)
 
-     #   x = self.mixer(x).squeeze(-1)  # Shape: (batch_size, 64, 1)
-        x = torch.cat((x, general), dim=1) # Shape: (batch_size, 64+64)
-        x = self.fc(x)  # Shape: (batch_size, output_size)
-        return x.squeeze(1)  # Shape: (batch_size)
-
+        x = torch.cat((x, general), dim=1)
+        x = self.fc(x)
+        return x.squeeze(1)
