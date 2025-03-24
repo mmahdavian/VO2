@@ -36,7 +36,7 @@ def get_parser():
     parser.add_argument('--future_data', default=32, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
-    parser.add_argument('--model_name', default='NN_mixed_shallow', type=str)
+    parser.add_argument('--model_name', default='NN_mixed_deep', type=str)
     parser.add_argument('--wandb', default=False, type=bool)
     parser.add_argument('--wandb_name', default='Zepp', type=str)
     parser.add_argument('--kernel_len', default=3, type=int)
@@ -56,8 +56,8 @@ class Trainer:
         ## We have both train and test ratio as a general format. They might not sumup to 1
         train_dataset = Feeder(args=self.args, split='train')
         test_dataset = Feeder(args=self.args, split='test')
-        self.train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=self.args.batch_size, shuffle=True, num_workers=4)
-        self.test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=self.args.batch_size, shuffle=False, num_workers=4)
+        self.train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=self.args.batch_size, shuffle=True, num_workers=8)
+        self.test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=self.args.batch_size, shuffle=False, num_workers=8)
 
     def load_logger(self):
         self.log = OrderedDict([
