@@ -38,7 +38,7 @@ class NN_Model(nn.Module):
         self.constants = nn.Sequential(
             nn.Linear(4, 32),
             nn.LeakyReLU(),
-            nn.Linear(32, 64),
+            nn.Linear(32, 16),
        #     nn.LeakyReLU(),
        #     nn.Linear(64, 128),
        #     nn.LeakyReLU()
@@ -47,54 +47,56 @@ class NN_Model(nn.Module):
       #  self.global_pool = nn.AdaptiveAvgPool1d(1)  # Global average pooling
       #  self.mixer = nn.Linear(24,1)
         self.mixer = nn.Sequential(
-            nn.Linear(24, 12),
+            nn.Linear(48, 24),
             nn.LeakyReLU(),
-            nn.Linear(12, 1),
+            nn.Linear(24, 1),
             nn.LeakyReLU()
         )
         self.fc = nn.Sequential(
-            nn.Linear(128, 64),
+            nn.Linear(272, 32),
             nn.LeakyReLU(),
-            nn.Linear(64, 32),
+            nn.Linear(32, 16),
             nn.LeakyReLU(),
-            nn.Linear(32, 1)
+            nn.Linear(16, 1)
         )
     #    self.fc = nn.Linear(128+128, 1)
 
     def forward(self, time, speed, HR, general):
         general = self.constants(general)
         ## time
-        x_time = self.pool1(self.relu1(self.bn1(self.conv1(time) + time)))
-        x_time = self.pool2(self.relu2(self.bn2(self.conv2(x_time) + self.proj2(x_time))))
- #       x_time = self.pool3(self.relu3(self.bn3(self.conv3(x_time) + self.proj3(x_time))))
- #       x_time = self.relu4(self.bn4(self.conv4(x_time) + self.proj4(x_time)))
-
-        x_time_long = self.pool1(self.relu1(self.bn1(self.long_conv1(time) + time)))
-        x_time_long = self.pool2(self.relu2(self.bn2(self.long_conv2(x_time_long) + self.proj2(x_time_long))))
- #       x_time_long = self.pool3(self.relu3(self.bn3(self.long_conv3(x_time_long) + self.proj3(x_time_long))))
-  #      x_time_long = self.relu4(self.bn4(self.long_conv4(x_time_long) + self.proj4(x_time_long)))
+        x_time = self.relu1(self.bn1(self.conv1(time)+time))
+        x_time = self.relu2(self.bn2(self.conv2(x_time)+self.proj2(x_time)))
+        x_time = self.relu3(self.bn3(self.conv3(x_time)+self.proj3(x_time)))
+        x_time = self.relu4(self.bn4(self.conv4(x_time)+self.proj4(x_time)))
+        
+        x_time_long = self.relu1(self.bn1(self.long_conv1(time)+time))
+        x_time_long = self.relu2(self.bn2(self.long_conv2(x_time_long)+self.proj2(x_time_long)))
+        x_time_long = self.relu3(self.bn3(self.long_conv3(x_time_long)+self.proj3(x_time_long)))
+        x_time_long = self.relu4(self.bn4(self.long_conv4(x_time_long)+self.proj4(x_time_long)))
 
         ## speed
-        x_speed = self.pool1(self.relu1(self.bn1(self.conv1(speed) + speed)))
-        x_speed = self.pool2(self.relu2(self.bn2(self.conv2(x_speed) + self.proj2(x_speed))))
-   #     x_speed = self.pool3(self.relu3(self.bn3(self.conv3(x_speed) + self.proj3(x_speed))))
-   #     x_speed = self.relu4(self.bn4(self.conv4(x_speed) + self.proj4(x_speed)))
+        x_speed = self.relu1(self.bn1(self.conv1(speed) + speed))
+        x_speed = self.relu2(self.bn2(self.conv2(x_speed) + self.proj2(x_speed)))
+        x_speed = self.relu3(self.bn3(self.conv3(x_speed) + self.proj3(x_speed)))
+        x_speed = self.relu4(self.bn4(self.conv4(x_speed) + self.proj4(x_speed)))
 
-        x_speed_long = self.pool1(self.relu1(self.bn1(self.long_conv1(speed) + speed)))
-        x_speed_long = self.pool2(self.relu2(self.bn2(self.long_conv2(x_speed_long) + self.proj2(x_speed_long))))
-    #    x_speed_long = self.pool3(self.relu3(self.bn3(self.long_conv3(x_speed_long) + self.proj3(x_speed_long))))
-    #    x_speed_long = self.relu4(self.bn4(self.long_conv4(x_speed_long) + self.proj4(x_speed_long)))
+        x_speed_long = self.relu1(self.bn1(self.long_conv1(speed) + speed))
+        x_speed_long = self.relu2(self.bn2(self.long_conv2(x_speed_long) + self.proj2(x_speed_long)))
+        x_speed_long = self.relu3(self.bn3(self.long_conv3(x_speed_long) + self.proj3(x_speed_long)))
+        x_speed_long = self.relu4(self.bn4(self.long_conv4(x_speed_long) + self.proj4(x_speed_long)))
 
         ## HR
-        x_HR = self.pool1(self.relu1(self.bn1(self.conv1(HR) + HR)))
-        x_HR = self.pool2(self.relu2(self.bn2(self.conv2(x_HR) + self.proj2(x_HR))))
-     #   x_HR = self.pool3(self.relu3(self.bn3(self.conv3(x_HR) + self.proj3(x_HR))))
-      #  x_HR = self.relu4(self.bn4(self.conv4(x_HR) + self.proj4(x_HR)))
+        x_HR = self.relu1(self.bn1(self.conv1(HR) + HR))
+        x_HR = self.relu2(self.bn2(self.conv2(x_HR) + self.proj2(x_HR)))
+        x_HR = self.relu3(self.bn3(self.conv3(x_HR) + self.proj3(x_HR)))
+        x_HR = self.relu4(self.bn4(self.conv4(x_HR) + self.proj4(x_HR)))
 
-        x_HR_long = self.pool1(self.relu1(self.bn1(self.long_conv1(HR) + HR)))
-        x_HR_long = self.pool2(self.relu2(self.bn2(self.long_conv2(x_HR_long) + self.proj2(x_HR_long))))
-    #    x_HR_long = self.pool3(self.relu3(self.bn3(self.long_conv3(x_HR_long) + self.proj3(x_HR_long))))
-     #   x_HR_long = self.relu4(self.bn4(self.long_conv4(x_HR_long) + self.proj4(x_HR_long))) #x_time = self.temporal_conv(time)
+        x_HR_long = self.relu1(self.bn1(self.long_conv1(HR) + HR)) 
+        x_HR_long = self.relu2(self.bn2(self.long_conv2(x_HR_long) + self.proj2(x_HR_long)))
+        x_HR_long = self.relu3(self.bn3(self.long_conv3(x_HR_long) + self.proj3(x_HR_long)))
+        x_HR_long = self.relu4(self.bn4(self.long_conv4(x_HR_long) + self.proj4(x_HR_long)))
+
+        #x_time = self.temporal_conv(time)
         #x_speed = self.temporal_conv(speed)
         #x_HR = self.temporal_conv(HR)
         x = torch.cat((x_time,x_time_long,x_speed,x_speed_long,x_HR,x_HR_long), dim=2)

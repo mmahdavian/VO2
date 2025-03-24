@@ -2,6 +2,7 @@
 import torch
 from data_loader import Feeder
 from models.nn_model import NN_Model
+from models.rnn2_nn_model import RNN2_Model
 import argparse
 import os 
 import numpy as np
@@ -16,13 +17,13 @@ def get_parser():
     parser.add_argument('--test_ratio', type=float, default=0.2, help='test ratio')
     parser.add_argument('--batch_size', type=int, default=256, help='batch size')
     parser.add_argument('--past_data', default=32, type=int)
-    parser.add_argument('--future_data', default=32, type=int)
+    parser.add_argument('--future_data', default=0, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
-    parser.add_argument('--model_name', default='NN3_shallow_dilation1_kl1', type=str)
-    parser.add_argument('--kernel_len', default=1, type=int)
+    parser.add_argument('--model_name', default='RNN2_mixed_Leaky_deep_nofuture_moreReg', type=str)
+    parser.add_argument('--kernel_len', default=3, type=int)
     parser.add_argument('--model_path', default='./saved_models', type=str)
-    parser.add_argument('--dilation', default=1, type=int)
+    parser.add_argument('--dilation', default=3, type=int)
 
     return parser.parse_args()
 
@@ -37,8 +38,8 @@ class Tester:
         self.test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=self.args.batch_size, shuffle=False, num_workers=4)
 
     def test(self):
-        model = NN_Model(kernel_len=self.args.kernel_len,dilation=self.args.dilation).to(self.device)
-        model_path = os.path.join(self.args.model_path,self.args.model_name,'model_epoch_4.pth')
+        model = RNN2_Model(kernel_len=self.args.kernel_len,dilation=self.args.dilation).to(self.device)
+        model_path = os.path.join(self.args.model_path,self.args.model_name,'model_epoch_5.pth')
         model.load_state_dict(torch.load(model_path))
         model.eval()
         all_targets = []
@@ -71,7 +72,7 @@ class Tester:
         all_targets_ds = np.concatenate(all_targets_ds, axis=0)
         all_outputs_ds = np.concatenate(all_outputs_ds, axis=0)
 
-        start_data_num = 1500
+        start_data_num = 500
         end_data_num = 2500
         plt.figure(figsize=(10, 6))
         plt.plot(all_outputs_ds[start_data_num:end_data_num], label='Predicted', color='blue')
@@ -81,7 +82,7 @@ class Tester:
         plt.title('Comparison of Predicted and Actual VO2')
         plt.legend()
         plt.grid(True)
-        plt.savefig('comparison_dilation.png')
+        plt.savefig('comparison_rnn2.png')
         plt.show()
         
         print()

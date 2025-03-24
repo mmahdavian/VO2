@@ -16,6 +16,8 @@ import wandb
 from data_loader import Feeder
 from models.tcn_model import TCN
 from models.nn_model import NN_Model
+from models.rnn_nn_model import RNN_Model
+from models.rnn2_nn_model import RNN2_Model
 import argparse
 from collections import OrderedDict
 
@@ -34,7 +36,7 @@ def get_parser():
     parser.add_argument('--future_data', default=32, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
-    parser.add_argument('--model_name', default='NN3_shallow_mixed_Leaky', type=str)
+    parser.add_argument('--model_name', default='NN_mixed_shallow', type=str)
     parser.add_argument('--wandb', default=False, type=bool)
     parser.add_argument('--wandb_name', default='Zepp', type=str)
     parser.add_argument('--kernel_len', default=3, type=int)
@@ -101,11 +103,12 @@ class Trainer:
         self.initialize_weights(self.model)
         criterion = nn.MSELoss()
         optimizer = optim.AdamW(self.model.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
+    #    optimizer = optim.SGD(self.model.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
         self.scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.args.epochs, eta_min=self.args.lr/20)
 
         # Training loop
-        self.model.train()
         for epoch in range(self.args.epochs):
+            self.model.train()
             epoch_loss = 0.0
             for (times,speed,HR,input_general,targets,stats) in tqdm(self.train_loader, desc=f"Epoch {epoch+1}/{self.args.epochs}"):
                 times = times.float().unsqueeze(1).to(self.device)
