@@ -16,8 +16,6 @@ import wandb
 from data_loader import Feeder
 from models.tcn_model import TCN
 from models.nn_model import NN_Model
-from models.rnn_nn_model import RNN_Model
-from models.rnn2_nn_model import RNN2_Model
 import argparse
 from collections import OrderedDict
 
@@ -56,8 +54,8 @@ class Trainer:
         ## We have both train and test ratio as a general format. They might not sumup to 1
         train_dataset = Feeder(args=self.args, split='train')
         test_dataset = Feeder(args=self.args, split='test')
-        self.train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=self.args.batch_size, shuffle=True, num_workers=8)
-        self.test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=self.args.batch_size, shuffle=False, num_workers=8)
+        self.train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=self.args.batch_size, shuffle=True, num_workers=4)
+        self.test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=self.args.batch_size, shuffle=False, num_workers=4)
 
     def load_logger(self):
         self.log = OrderedDict([
@@ -103,13 +101,11 @@ class Trainer:
         self.initialize_weights(self.model)
         criterion = nn.MSELoss()
         optimizer = optim.AdamW(self.model.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
-    #    optimizer = optim.SGD(self.model.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
         self.scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.args.epochs, eta_min=self.args.lr/20)
 
-      #  self.model.train()
         # Training loop
+        self.model.train()
         for epoch in range(self.args.epochs):
-            self.model.train()
             epoch_loss = 0.0
             for (times,speed,HR,input_general,targets,stats) in tqdm(self.train_loader, desc=f"Epoch {epoch+1}/{self.args.epochs}"):
                 times = times.float().unsqueeze(1).to(self.device)
