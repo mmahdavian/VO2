@@ -103,9 +103,10 @@ class Trainer:
         optimizer = optim.AdamW(self.model.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
         self.scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.args.epochs, eta_min=self.args.lr/20)
 
+      #  self.model.train()
         # Training loop
-        self.model.train()
         for epoch in range(self.args.epochs):
+            self.model.train()
             epoch_loss = 0.0
             for (times,speed,HR,input_general,targets,stats) in tqdm(self.train_loader, desc=f"Epoch {epoch+1}/{self.args.epochs}"):
                 times = times.float().unsqueeze(1).to(self.device)
