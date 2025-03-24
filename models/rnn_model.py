@@ -2,10 +2,9 @@
 import torch
 import torch.nn as nn
 
-
-class NN_Model(nn.Module):
+class RNN_Model(nn.Module):
     def __init__(self,kernel_len,dilation):
-        super(NN_Model, self).__init__()
+        super(RNN_Model, self).__init__()
         self.kernel_len = kernel_len
         self.dilation1 = dilation
         self.dilation2 = dilation+4
@@ -22,49 +21,44 @@ class NN_Model(nn.Module):
         self.proj2 = nn.Conv1d(64, 1, kernel_size=1, stride=1, padding=0)
         self.ln2 = nn.LayerNorm(32)
 
-        self.drop = nn.Dropout(p=0.1)
-        # self.conv3 = nn.Conv1d(64, 128, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2 * self.dilation1, dilation=self.dilation1)
-        # self.long_conv3 = nn.Conv1d(64, 128, kernel_size=self.kernel_len*5, stride=1, padding=self.kernel_len*5 // 2 * self.dilation2, dilation=self.dilation2)
-        # self.relu3 = nn.LeakyReLU()
-        # self.pool3 = nn.MaxPool1d(kernel_size=2, stride=2)
-        # self.proj3 = nn.Conv1d(64, 1, kernel_size=1, stride=1, padding=0)
-        # self.bn3 = nn.BatchNorm1d(128)
+        self.drop = nn.Dropout(p=0.3)
 
-        # self.conv4 = nn.Conv1d(128, 256, kernel_size=self.kernel_len, stride=1, padding=self.kernel_len // 2 * self.dilation1, dilation=self.dilation1)
-        # self.long_conv4 = nn.Conv1d(128, 256, kernel_size=self.kernel_len*5, stride=1, padding=self.kernel_len*5 // 2 * self.dilation2, dilation=self.dilation2)
-        # self.relu4 = nn.LeakyReLU()
-        # self.proj4 = nn.Conv1d(128, 1, kernel_size=1, stride=1, padding=0)
-        # self.bn4 = nn.BatchNorm1d(256)
+##
+        self.embed_time = nn.Linear(1, 64)
+        self.embed_speed = nn.Linear(1, 64)
+        self.embed_HR = nn.Linear(1, 64)
 
+        self.gru_time = nn.GRU(64, 64, batch_first=True, dropout=0.3)
+        self.gru_speed = nn.GRU(64, 64, batch_first=True, dropout=0.3)
+        self.gru_HR = nn.GRU(64, 64, batch_first=True, dropout=0.3)
+   #     self.lstm_time = nn.LSTM(64, 128, batch_first=True, dropout=0.2)
+   #     self.lstm_speed = nn.LSTM(64, 128, batch_first=True, dropout=0.2)
+   #     self.lstm_HR = nn.LSTM(64, 128, batch_first=True, dropout=0.2)
+
+
+##
         self.constants = nn.Sequential(
             nn.Linear(4, 32),
             nn.LeakyReLU(),
             nn.Linear(32, 64),
-       #     nn.LeakyReLU(),
-       #     nn.Linear(64, 128),
-       #     nn.LeakyReLU()
         )
 
-      #  self.global_pool = nn.AdaptiveAvgPool1d(1)  # Global average pooling
-      #  self.mixer = nn.Linear(24,1)
         self.mixer = nn.Sequential(
             nn.Linear(48, 24),
             nn.LeakyReLU(),
             nn.Linear(24, 1),
-      #      nn.LeakyReLU()
         )
         self.fc = nn.Sequential(
-            nn.Linear(192, 64),
+            nn.Linear(384, 128),
             nn.LeakyReLU(),
-            nn.Linear(64, 32),
+            nn.Linear(128, 64),
             nn.LeakyReLU(),
-            nn.Linear(32, 1)
+            nn.Linear(64, 1)
         )
-    #    self.fc = nn.Linear(128+128, 1)
 
     def forward(self, time, speed, HR, general):
         general = self.constants(general)
-        ## time
+        # ## time
         x_time = self.drop(self.pool1(self.relu1(self.ln1(self.conv1(time)+time))))
         x_time = self.pool2(self.relu2(self.ln2(self.conv2(x_time)+self.proj2(x_time))))
 
@@ -78,7 +72,6 @@ class NN_Model(nn.Module):
         x_speed_long = self.drop(self.pool1(self.relu1(self.ln1(self.long_conv1(speed)+speed))))
         x_speed_long = self.pool2(self.relu2(self.ln2(self.long_conv2(x_speed_long)+self.proj2(x_speed_long))))
 
-
         ## HR
         x_HR = self.drop(self.pool1(self.relu1(self.ln1(self.conv1(HR)+HR))))
         x_HR = self.pool2(self.relu2(self.ln2(self.conv2(x_HR)+self.proj2(x_HR))))
@@ -89,8 +82,23 @@ class NN_Model(nn.Module):
         x = torch.cat((x_time,x_time_long,x_speed,x_speed_long,x_HR,x_HR_long), dim=2)
         x = x.mean(dim=-1)
 
-     #   x = self.mixer(x).squeeze(-1)  # Shape: (batch_size, 64, 1)
-        x = torch.cat((x, general), dim=1) # Shape: (batch_size, 64+64)
-        x = self.fc(x)  # Shape: (batch_size, output_size)
-        return x.squeeze(1)  # Shape: (batch_size)
+        # x_gru = torch.cat((x_time,x_time_long,x_speed,x_speed_long,x_HR,x_HR_long), dim=1)
+
+        x_time_gru = self.embed_time(time.permute(0,2,1))
+        x_speed_gru = self.embed_speed(speed.permute(0,2,1))
+        x_HR_gru = self.embed_HR(HR.permute(0,2,1))
+
+        gru_time,hid_time = self.gru_time(x_time_gru)
+        gru_speed,hid_speed = self.gru_speed(x_speed_gru)
+        gru_HR,hid_HR = self.gru_HR(x_HR_gru)
+        x_gru = self.drop(torch.cat((gru_time[:,-1], gru_speed[:,-1], gru_HR[:,-1]), dim=1))
+ 
+      #  _, (lstm_time, _) = self.lstm_time(x_time)
+      #  _, (lstm_speed, _) = self.lstm_speed(x_speed)
+      #  _, (lstm_HR, _) = self.lstm_HR(x_HR)
+#        x_gru = self.drop(torch.cat((lstm_time.squeeze(0), lstm_speed.squeeze(0), lstm_HR.squeeze(0)), dim=1))
+
+        x = self.drop(torch.cat((x, x_gru, general), dim=1))
+        x = self.fc(x)  
+        return x.squeeze(1) 
 

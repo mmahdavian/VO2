@@ -14,10 +14,9 @@ import torch.optim as optim
 import wandb
 
 from data_loader import Feeder
-from models.tcn_model import TCN
 from models.nn_model import NN_Model
-from models.rnn_nn_model import RNN_Model
-from models.rnn2_nn_model import RNN2_Model
+from models.rnn_model import RNN_Model
+from models.transformer_model import Transformer_Model
 import argparse
 from collections import OrderedDict
 
@@ -36,7 +35,7 @@ def get_parser():
     parser.add_argument('--future_data', default=32, type=int)
     parser.add_argument('--interval', default=1, type=int)
     parser.add_argument('--time_interval', default=1, type=int)
-    parser.add_argument('--model_name', default='NN_test', type=str)
+    parser.add_argument('--model_name', default='Transformer', type=str)
     parser.add_argument('--wandb', default=False, type=bool)
     parser.add_argument('--wandb_name', default='Zepp', type=str)
     parser.add_argument('--kernel_len', default=3, type=int)
@@ -50,7 +49,6 @@ class Trainer:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.load_data()
         self.load_logger()
-#        self.train()
 
     def load_data(self):
         ## We have both train and test ratio as a general format. They might not sumup to 1
@@ -98,15 +96,15 @@ class Trainer:
                 nn.init.zeros_(layer.bias)
                     
     def train(self):
-      #  self.model = TCN(input_channels=1, const_dim=4, num_layers=4, kernel_size=self.args.kernel_len).to(self.device)
-        self.model = NN_Model(self.args.kernel_len,self.args.dilation).to(self.device)
+        self.model = RNN_Model(self.args.kernel_len,self.args.dilation).to(self.device)
+    #    self.model = NN_Model(self.args.kernel_len,self.args.dilation).to(self.device)
+    #    self.model = Transformer_Model().to(self.device)
+        
         self.initialize_weights(self.model)
         criterion = nn.MSELoss()
         optimizer = optim.AdamW(self.model.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
-    #    optimizer = optim.SGD(self.model.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
         self.scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.args.epochs, eta_min=self.args.lr/20)
 
-      #  self.model.train()
         # Training loop
         for epoch in range(self.args.epochs):
             self.model.train()
